@@ -3,7 +3,7 @@ from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import showinfo
 from pickle import load
 
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 
 TITLE = "Offline SM63 Level Portal"
 
