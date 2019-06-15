@@ -1,4 +1,4 @@
-from tkinter import Button, Entry, Frame, Label, Listbox, Scrollbar, Tk, BOTH, END, LEFT, RIGHT, Y
+from tkinter import Button, Entry, Frame, Label, Listbox, Scrollbar, Tk, BOTH, END, LEFT, RIGHT, TRUE, Y
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import showinfo
 from pickle import load
@@ -40,7 +40,7 @@ class App(Tk):
         self.searchButton.pack(side = LEFT)
         
         self.display = Frame(self)
-        self.display.pack()        
+        self.display.pack(expand = TRUE, fill = BOTH)        
 
     def outputLevel(self, *args):
         level = self.codes[self.searchScope[self.outText.curselection()[0]][0]]
@@ -83,7 +83,7 @@ class App(Tk):
         self.searchScope = results
         
         self.outText = Listbox(self.display, width = 75, height = min(len(results), 15))
-        self.outText.pack(side = LEFT, fill = BOTH)
+        self.outText.pack(side = LEFT, expand = TRUE, fill = BOTH)
         
         self.outText.bind("<Double-1>", self.outputLevel)
         
