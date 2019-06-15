@@ -1,8 +1,9 @@
 from tkinter import *
 from tkinter.scrolledtext import ScrolledText
+from tkinter.messagebox import *
 import pickle
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 TITLE = "Offline SM63 Level Portal"
 
@@ -30,6 +31,7 @@ def outputLevel(*args):
     except:
         import subprocess
         subprocess.Popen("clip", stdin = subprocess.PIPE).communicate(level.encode())
+    showinfo(TITLE, "Copied level code to clipboard!")
         
 def reset():
     global outText, scroll, searchScope
@@ -59,12 +61,12 @@ def search():
     searchTerm = searchEntry.get()
     
     for i in searchScope:
-        if any(searchTerm in j for j in i[1:3]):
+        if any(searchTerm.lower() in j.lower() for j in i[1:3]):
             results.append(i)
     
     searchScope = results
     
-    outText = Listbox(display, width = 75, height = len(results))
+    outText = Listbox(display, width = 75, height = min(len(results), 15))
     outText.pack(side = LEFT, fill = BOTH)
     
     outText.bind("<Double-1>", outputLevel)
