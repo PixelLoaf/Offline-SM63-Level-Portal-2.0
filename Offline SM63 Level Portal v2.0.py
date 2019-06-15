@@ -1,103 +1,98 @@
-from tkinter import *
+from tkinter import Button, Entry, Frame, Label, Listbox, Scrollbar, Tk, BOTH, END, LEFT, RIGHT, Y
 from tkinter.scrolledtext import ScrolledText
-from tkinter.messagebox import *
-import pickle
+from tkinter.messagebox import showinfo
+from pickle import load
 
-VERSION = "2.1.0"
+VERSION = "2.2.0"
 
 TITLE = "Offline SM63 Level Portal"
 
-main = Tk()
+class App(Tk):
 
-main.title(TITLE)
-
-file = pickle.load(open("database.pickle", "rb"))
-
-levels = file["codes"]
-
-levelCodes = file["ids"]
-
-searchScope = levelCodes[:]
-
-outText = None
-
-scroll = None
-
-def outputLevel(*args):
-    level = levels[searchScope[outText.curselection()[0]][0]]
-    try:
-        import pyperclip
-        pyperclip.copy(level)
-    except:
-        import subprocess
-        subprocess.Popen("clip", stdin = subprocess.PIPE).communicate(level.encode())
-    showinfo(TITLE, "Copied level code to clipboard!")
+    def __init__(self):
+        Tk.__init__(self)
         
-def reset():
-    global outText, scroll, searchScope
-    outText.destroy()
-    scroll.destroy()
-    resetButton.destroy()
-    searchScope = levelCodes[:]
-    outText = None
-    scroll = None
-    searchButton.config(text = "Search")
+        self.title(TITLE)
+        self.db = load(open("database.pickle", "rb"))
+        self.codes = self.db["codes"]
+        self.ids = self.db["ids"]
+        self.searchScope = self.ids[:]
+        self.outText = None
+        self.scroll = None
+        self.resetButton = None
+        
+        self.searchFrame = Frame(self)
+        self.searchFrame.pack()
+        
+        self.searchLabel = Label(self.searchFrame, text = "Search term:")
+        self.searchLabel.pack(side = LEFT)
+        
+        self.searchSubFrame = Frame(self.searchFrame)
+        self.searchSubFrame.pack(side = RIGHT)
+        
+        self.searchEntry = Entry(self.searchSubFrame)
+        self.searchEntry.pack(side = LEFT)
+        
+        self.searchButtonsFrame = Frame(self.searchSubFrame)
+        self.searchButtonsFrame.pack(side = RIGHT)
+        
+        self.searchButton = Button(self.searchButtonsFrame, text = "Search", command = self.search)
+        self.searchButton.pack(side = LEFT)
+        
+        self.display = Frame(self)
+        self.display.pack()        
 
-def search():
-    
-    global outText, scroll, searchScope
-    
-    if outText is not None:
-        outText.destroy()
-        scroll.destroy()
-    else:
-        searchButton.config(text = "Refine search")
-        global resetButton
-        resetButton = Button(searchButtonsFrame, text = "Reset search", command = reset, fg = "#FF0000")
-        resetButton.pack(side = RIGHT)        
-    
-    results = []
-    
-    searchTerm = searchEntry.get()
-    
-    for i in searchScope:
-        if any(searchTerm.lower() in j.lower() for j in i[1:3]):
-            results.append(i)
-    
-    searchScope = results
-    
-    outText = Listbox(display, width = 75, height = min(len(results), 15))
-    outText.pack(side = LEFT, fill = BOTH)
-    
-    outText.bind("<Double-1>", outputLevel)
-    
-    scroll = Scrollbar(display, orient = "vertical")
-    scroll.config(command = outText.yview)
-    scroll.pack(side = RIGHT, fill = Y)
+    def outputLevel(self, *args):
+        level = self.codes[self.searchScope[self.outText.curselection()[0]][0]]
+        try:
+            import pyperclip
+            pyperclip.copy(level)
+        except:
+            import subprocess
+            subprocess.Popen("clip", stdin = subprocess.PIPE).communicate(level.encode())
+        showinfo(TITLE, "Copied level code to clipboard!")
+        
+    def reset(self):
+        self.outText.destroy()
+        self.scroll.destroy()
+        self.resetButton.destroy()
+        self.searchScope = self.ids[:]
+        self.outText = None
+        self.scroll = None
+        self.searchButton.config(text = "Search")
 
-    outText.config(yscrollcommand = scroll.set)
-
-    [outText.insert(END, "{} by {}".format(i[1], i[2])) for i in results]
+    def search(self):
+        
+        if self.outText is not None:
+            self.outText.destroy()
+            self.scroll.destroy()
+        else:
+            self.searchButton.config(text = "Refine search")
+            
+            self.resetButton = Button(self.searchButtonsFrame, text = "Reset search", command = self.reset, fg = "#FF0000")
+            self.resetButton.pack(side = RIGHT)        
+        
+        results = []
+        
+        searchTerm = self.searchEntry.get()
+        
+        for i in self.searchScope:
+            if any(searchTerm.lower() in j.lower() for j in i[1:3]):
+                results.append(i)
+        
+        self.searchScope = results
+        
+        self.outText = Listbox(self.display, width = 75, height = min(len(results), 15))
+        self.outText.pack(side = LEFT, fill = BOTH)
+        
+        self.outText.bind("<Double-1>", self.outputLevel)
+        
+        self.scroll = Scrollbar(self.display, orient = "vertical")
+        self.scroll.config(command = self.outText.yview)
+        self.scroll.pack(side = RIGHT, fill = Y)
     
-searchFrame = Frame(main)
-searchFrame.pack()
+        self.outText.config(yscrollcommand = self.scroll.set)
+    
+        [self.outText.insert(END, "{} by {}".format(i[1], i[2])) for i in results]
 
-searchLabel = Label(searchFrame, text = "Search term:")
-searchLabel.pack(side = LEFT)
-
-searchSubFrame = Frame(searchFrame)
-searchSubFrame.pack(side = RIGHT)
-
-searchEntry = Entry(searchSubFrame)
-searchEntry.pack(side = LEFT)
-
-searchButtonsFrame = Frame(searchSubFrame)
-searchButtonsFrame.pack(side = RIGHT)
-
-searchButton = Button(searchButtonsFrame, text = "Search", command = search)
-searchButton.pack(side = LEFT)
-
-display = Frame(main)
-display.pack()
-
-main.mainloop()
+App().mainloop()
